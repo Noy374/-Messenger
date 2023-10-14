@@ -1,7 +1,6 @@
 package com.example.messenger.controller;
 
 
-import com.example.messenger.payload.request.LogOutRequest;
 import com.example.messenger.payload.request.LoginRequest;
 import com.example.messenger.payload.request.RegistrationRequest;
 import com.example.messenger.service.AuthService;
@@ -11,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -41,10 +39,13 @@ public class AuthController {
         return authService.confirmEmailToken(token);
     }
 
-    @PostMapping("/log/out")
-    ResponseEntity<Object> logOut(@Valid @RequestBody LogOutRequest logOutRequest, BindingResult bindingResult, HttpServletRequest request, HttpServletResponse response) {
-        ResponseEntity<Object> errors = responseErrorValidation.mapValidationService(bindingResult);
-        if (!ObjectUtils.isEmpty(errors)) return errors;
-        return authService.logOut(logOutRequest,request,response);
+    @PostMapping("/log-out")
+    ResponseEntity<Object> logOut(HttpServletRequest request, HttpServletResponse response) {
+        return authService.logOut(request,response);
+    }
+
+    @GetMapping("/refresh")
+    ResponseEntity<Object> refreshAccessToken(HttpServletRequest request){
+        return authService.refreshAccessToken(request);
     }
 }

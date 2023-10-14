@@ -1,5 +1,6 @@
 package com.example.messenger.controller;
 
+import com.example.messenger.payload.request.AddFriendRequest;
 import com.example.messenger.payload.request.EmailChangeRequest;
 import com.example.messenger.payload.request.PasswordChangeRequest;
 import com.example.messenger.payload.request.ProfileRequest;
@@ -15,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/profile")
-public class UserProfileController {
+@RequestMapping("/user")
+public class UserController {
 
     private final UserService userService;
     private final ResponseErrorValidation responseErrorValidation;
@@ -27,11 +28,11 @@ public class UserProfileController {
         ResponseEntity<Object> errors = responseErrorValidation.mapValidationService(bindingResult);
         if (!ObjectUtils.isEmpty(errors)) return errors;
         userService.updateProfile(profileRequest);
-        return  ResponseEntity.ok().body(new MessageResponse("Profile updated successfully"));
+        return ResponseEntity.ok().body(new MessageResponse("Profile updated successfully"));
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<Object> changePassword(@Valid @RequestBody PasswordChangeRequest passwordChangeRequest,BindingResult bindingResult) {
+    public ResponseEntity<Object> changePassword(@Valid @RequestBody PasswordChangeRequest passwordChangeRequest, BindingResult bindingResult) {
         ResponseEntity<Object> errors = responseErrorValidation.mapValidationService(bindingResult);
         if (!ObjectUtils.isEmpty(errors)) return errors;
         return userService.changePassword(passwordChangeRequest);
@@ -47,7 +48,17 @@ public class UserProfileController {
     @DeleteMapping("/delete")
     public ResponseEntity<Object> deleteProfile() {
         userService.changeProfileStatus();
-        return  ResponseEntity.ok().body(new MessageResponse("Profile deleted successfully"));
+        return ResponseEntity.ok().body(new MessageResponse("Profile deleted successfully"));
     }
 
+
+    @PostMapping("/add")
+    public ResponseEntity<Object> addFriend(@RequestBody AddFriendRequest addFriendRequest) {
+        return userService.addFriend(addFriendRequest.getFriendUsername());
+    }
+
+    @GetMapping("/friends")
+    public ResponseEntity<Object> getFriends() {
+        return ResponseEntity.ok(userService.getFriends());
+    }
 }

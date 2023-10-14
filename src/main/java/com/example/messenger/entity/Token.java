@@ -14,7 +14,7 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private Long id;
-    private String token;
+    private String refreshToken;
     private LocalDateTime createdDate;
     private LocalDateTime expirationDate;
 

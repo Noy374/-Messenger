@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends MongoRepository<Message, String> {
     List<Message> findBySenderIdAndRecipientId(Long id, Long id1);
-    // Методы для работы с сообщениями в MongoDB
+
 }
 

@@ -70,6 +70,7 @@ public class EmailService {
         }
         return true;
     }
+
     private String generateConfirmationLink(String email){
 
         String confirmationToken = UUID.randomUUID().toString();

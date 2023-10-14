@@ -8,27 +8,23 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(SpringExtension.class)
@@ -36,6 +32,10 @@ public class MessageControllerTests {
 
     private static final String SEND_HELLO_MESSAGE_ENDPOINT = "/app/hello";
     private static final String SUBSCRIBE_GREETING_ENDPOINT = "/topic/greetings";
+    private static final String ACCESS_TOKEN
+            = "eyJhbGciOiJIUzI1NiJ9" +
+            ".eyJzdWIiOiJLYXJTdmFhIiwiaWF0IjoxNjk3MDQ2ODEyLCJleHAiOjE2OTcwNDc0MTJ9" +
+            ".guA-wdG6eyw4SMC6pDapQ5uhdJwxYFo2N2NY6wQUAac";
 
     BlockingQueue<String> blockingQueue;
     WebSocketStompClient stompClient;
@@ -52,15 +52,22 @@ public class MessageControllerTests {
     @Test
     public void shouldReceiveGreetingFromServer() throws Exception {
 
+        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
+        headers.add("Authorization", "Bearer " + ACCESS_TOKEN);
+        headers.add("Cookie",
+                "refreshToken=eyJhbGciOiJIUzI1NiJ9." +
+                        "eyJzdWIiOiJLYXJTdmFhIiwiaWF0IjoxNjk3MDQ2ODExLCJleHAiOjE2OTc0Nzg4MTF9" +
+                        ".jXsVJWx-L6mb5gJvzV84KKLC78OJf-Q4ldHxXYgpwKA");
         String webSocketUrl = "ws://localhost:8080";
         StompSession session = stompClient
-                .connect(webSocketUrl + "/message-websocket", new StompSessionHandlerAdapter() {
+                .connect(webSocketUrl + "/message-websocket",headers, new StompSessionHandlerAdapter() {
                 })
                 .get(10000, SECONDS);
-        // send a message
+
+
         MessageRequest messageRequest=new MessageRequest();
-        messageRequest.setRecipientUsername("Noy123456");
-        messageRequest.setSenderUsername("Noy3743");
+        messageRequest.setRecipientUsername("Noy3745345");
+        messageRequest.setSenderUsername("KarSvaa");
         messageRequest.setText("barev");
         session.send(SEND_HELLO_MESSAGE_ENDPOINT, messageRequest);
         session.subscribe(SUBSCRIBE_GREETING_ENDPOINT, new DefaultStompFrameHandler());

@@ -37,6 +37,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+
+        String jwt=null;
+        String username=null;
         try {
             final String authHeader = request.getHeader("Authorization");
             if (authHeader == null) {
@@ -49,26 +53,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 return;
             }
 
-            final String jwt = authHeader.substring(BEARER_TOKEN_START_INDEX);
-            if (jwtTokenUtils.isTokenExpired(jwt)) {
-                logger.info("JWT has expired, refreshing now.");
-                refreshJwtToken(request, response, jwt);
-            } else {
-                final String username = jwtTokenUtils.getUsername(jwt);
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    final UserDetails userDetails = userService.loadUserByUsername(username);
-                        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, new ArrayList<>());
-                        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-
-                }
-                logger.info("JWT validated, processing request...");
-                filterChain.doFilter(request, response);
-            }
-
+             jwt = authHeader.substring(BEARER_TOKEN_START_INDEX);
+            username = jwtTokenUtils.getUsername(jwt);
         } catch (ExpiredJwtException e) {
             logger.error("Expired JWT error: ", e);
-            setResponseError(response, HttpServletResponse.SC_UNAUTHORIZED, "Expired JWT");
+            setResponseError(response, HttpServletResponse.SC_BAD_REQUEST, "Expired JWT");
 
         } catch (SignatureException e) {
             logger.error("Signature error: ", e);
@@ -78,34 +67,19 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             setResponseError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected error");
         }
 
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            final UserDetails userDetails = userService.loadUserByUsername(username);
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, new ArrayList<>());
+            SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        }
+        filterChain.doFilter(request, response);
     }
 
-    private void refreshJwtToken(HttpServletRequest request, HttpServletResponse response, String jwt) throws IOException {
-        Objects.requireNonNull(jwt, "JWT must not be null.");
 
-        final String refreshToken = jwtTokenUtils.fetchTokenFromCookies(request.getCookies());
-        if (refreshToken == null || jwtTokenUtils.isTokenExpired(refreshToken)) {
-            setResponseUnauthorized(response, "Refresh token is expired or missing.");
-            return;
-        }
-
-        final String username = jwtTokenUtils.getUsername(jwt);
-        if (username == null || username.trim().isEmpty()) {
-            setResponseError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Username is missing in JWT.");
-            return;
-        }
-
-        final String newAccessToken = jwtTokenUtils.generateAccessToken(userService.loadUserByUsername(username));
-        setResponseNewAccessToken(response, newAccessToken);
-    }
 
     private void setResponseUnauthorized(HttpServletResponse response, String message) throws IOException {
         setResponseError(response, HttpServletResponse.SC_UNAUTHORIZED, message);
-    }
-
-    private void setResponseNewAccessToken(HttpServletResponse response, String newAccessToken) throws IOException {
-        Objects.requireNonNull(newAccessToken, "New access token must not be null.");
-        sendResponse(response, HttpServletResponse.SC_OK, Collections.singletonMap("accessToken", newAccessToken));
     }
 
     private void setResponseError(HttpServletResponse response, int status, String message) throws IOException {
@@ -120,4 +94,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             out.write(objectMapper.writeValueAsString(responseBody));
         }
     }
+
+
 }

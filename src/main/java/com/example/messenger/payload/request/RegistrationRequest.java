@@ -3,6 +3,7 @@ package com.example.messenger.payload.request;
 import com.example.messenger.anatations.UniqueEmail;
 import com.example.messenger.anatations.UniqueUsername;
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class RegistrationRequest {
     private String password;
     @NotEmpty(message = "Email cannot be empty")
     @UniqueEmail
+    @Email
     private String email;
 
 }

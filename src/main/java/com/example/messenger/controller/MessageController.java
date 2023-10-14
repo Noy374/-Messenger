@@ -17,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MessageController {
     private final MessageService messageService;
+    private  final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/hello")
     @SendTo("/topic/messages")
@@ -28,8 +29,6 @@ public class MessageController {
                         messageRequest.getText()
                 );
     }
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/chat")
     public void getChatHistory(MessageRequest messageRequest) {

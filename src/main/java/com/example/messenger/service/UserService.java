@@ -19,7 +19,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -87,6 +91,7 @@ public class UserService implements UserDetailsService {
                userRepository.save(user);
     }
 
+    @Transactional
     public ResponseEntity<Object> changePassword(PasswordChangeRequest passwordChangeRequest) {
         User user = getUser();
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -115,11 +120,31 @@ public class UserService implements UserDetailsService {
         emailService.updateEmail(getUser() ,emailChangeRequest.getEmail());
         return ResponseEntity.ok().body(new MessageResponse("Email changed successfully"));
     }
-    private User getUser(){
+    public User getUser(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         return userRepository.getUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+    public List<User> getFriends() {
+        User user = getUser();
+        return new ArrayList<>(user.getFriends());
+    }
+
+    public ResponseEntity<Object> addFriend(String friendUsername) {
+        User friend=getUserByUsername(friendUsername);
+        System.out.println(friendUsername);
+       if(friend==null)
+           return ResponseEntity
+                   .badRequest()
+                   .body(new MessageResponse("User with username:"+friendUsername+" not found"));
+       User user = getUser();
+
+        Set<User> friends = user.getFriends();
+        friends.add(friend);
+        user.setFriends(friends);
+        userRepository.save(user);
+        return ResponseEntity.ok().body(new MessageResponse("User with username:"+friendUsername+" added to your friends")) ;
+    }
 }

@@ -32,14 +32,15 @@ public class SecurityConfig{
         this.jwtRequestFilter = jwtRequestFilter;
     }
 
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/profile/*").authenticated()
+                        .requestMatchers("/ws/**","/topic/messages").authenticated()
+                        .requestMatchers("/user/*").authenticated()
                         .anyRequest().permitAll())
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -48,6 +49,8 @@ public class SecurityConfig{
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
+
 
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {

@@ -1,13 +1,13 @@
 package com.example.messenger.service;
 
 
-import com.example.messenger.payload.request.LogOutRequest;
+import com.example.messenger.entity.User;
 import com.example.messenger.payload.request.LoginRequest;
 import com.example.messenger.payload.request.RegistrationRequest;
 import com.example.messenger.payload.response.LoginResponse;
 import com.example.messenger.payload.response.MessageResponse;
+import com.example.messenger.payload.response.RefreshAccessTokenResponse;
 import com.example.messenger.security.JwtTokenUtils;
-import com.example.messenger.validations.ResponseErrorValidation;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -71,11 +71,10 @@ public class AuthService {
        return emailService.confirmEmailToken(token);
     }
 
-    public ResponseEntity<Object> logOut(LogOutRequest logOutRequest,HttpServletRequest request, HttpServletResponse response) {
-        String username = logOutRequest.getUsername();
+    public ResponseEntity<Object> logOut(HttpServletRequest request, HttpServletResponse response) {
         try {
-            UserDetails userDetails = userService.loadUserByUsername(username);
-            tokenService.deleteToken(userDetails);
+            User user=userService.getUser();
+            tokenService.deleteToken(user);
             JwtTokenUtils.deleteRefreshTokenCookie(request,response);
             return ResponseEntity.ok(new MessageResponse("Logged out successfully."));
         } catch (UsernameNotFoundException exception) {
@@ -83,5 +82,14 @@ public class AuthService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("An error occurred during log out."));
         }
+    }
+
+    public ResponseEntity<Object> refreshAccessToken(HttpServletRequest request) {
+        String refreshToken = jwtTokenUtils.fetchTokenFromCookies(request.getCookies());
+        if (refreshToken == null || !tokenService.checkToken(refreshToken))
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok().body(new RefreshAccessTokenResponse(jwtTokenUtils
+                .generateAccessToken(userService.getUserByUsername(jwtTokenUtils.getUsername(refreshToken)))));
+
     }
 }
