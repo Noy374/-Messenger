@@ -17,17 +17,17 @@
 
 
 # Стек технологий:
-Spring Boot 3.1.4
-Java 17
-Spring Data JPA
-Spring Security
-PostgreSQL
-Lombok
-JWT
-Java Mail
-Spring Data MongoDB
-Spring Boot Starter Validation
-Spring Boot Starter Websocket
+Spring Boot 3.1.4,
+Java 17,
+Spring Data JPA,
+Spring Security,
+PostgreSQL,
+Lombok,
+JWT,
+Java Mail,
+Spring Data MongoDB,
+Spring Boot Starter Validation,
+Spring Boot Starter Websocket,
 Springdoc OpenAPI
 
 # Примеры запросов и ответов:
@@ -41,11 +41,13 @@ Springdoc OpenAPI
 POST /auth/reg
 Content-Type: application/json
 
-{
-  "username": "newUser",
-  "email": "newuser@example.com",
-  "password": "Password123"
-}
+{ 
+    "username": "Noy1234",
+    "email": "karsva666@gmail.com",
+    "password": "Password123",
+    "name":  "karapet",
+    "surname": "svarian"
+} 
 Ответ:
 
 200 OK
@@ -128,6 +130,7 @@ Content-Type: application/json
 или если пользователь не найден:
 
 401 Unauthorised
+
 /auth/refresh (GET)
 
 Запрос:
@@ -221,8 +224,11 @@ PUT /profile/update
 Content-Type: application/json
 
 {
-"username": "existingUser",
-"email": "newemail@example.com"
+{ 
+    "username": "Noy1234",
+    "name":  "karapet",
+    "surname": "svarian"
+} 
 }
 Ответ:
 
@@ -248,7 +254,7 @@ PUT /profile/change-password
 Content-Type: application/json
 
 {
-"currentUserPassword": "OldPassword123",
+"password": "OldPassword123",
 "newPassword": "NewPassword123"
 }
 
@@ -278,8 +284,7 @@ PUT /profile/change-email
 Content-Type: application/json
 
 {
-"currentEmail": "usercurrent@example.com",
-"newEmail": "usernew@example.com"
+"email": "usernew@example.com"
 }
 
 Ответ:
