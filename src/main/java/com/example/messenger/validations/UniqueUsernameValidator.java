@@ -4,9 +4,9 @@ import com.example.messenger.anatations.UniqueUsername;
 import com.example.messenger.service.UserService;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UniqueUsernameValidator implements ConstraintValidator<UniqueUsername,Object>{
 
     private final UserService userService;

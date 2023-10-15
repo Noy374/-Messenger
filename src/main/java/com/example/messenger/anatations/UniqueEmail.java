@@ -2,7 +2,6 @@ package com.example.messenger.anatations;
 
 
 import com.example.messenger.validations.UniqueEmailValidator;
-import com.example.messenger.validations.UniqueUsernameValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

@@ -1,6 +1,6 @@
 package com.example.messenger.payload.request;
 
-import com.example.messenger.anatations.UniqueUsername;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;

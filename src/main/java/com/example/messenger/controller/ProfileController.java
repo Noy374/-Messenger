@@ -1,18 +1,15 @@
 package com.example.messenger.controller;
 
 import com.example.messenger.exceptions.EmailTokenNotFoundException;
-import com.example.messenger.payload.request.AddFriendRequest;
 import com.example.messenger.payload.request.EmailChangeRequest;
 import com.example.messenger.payload.request.PasswordChangeRequest;
 import com.example.messenger.payload.request.ProfileRequest;
 import com.example.messenger.payload.response.MessageResponse;
 import com.example.messenger.service.ProfileService;
-import com.example.messenger.service.UserService;
 import com.example.messenger.validations.ResponseErrorValidation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;

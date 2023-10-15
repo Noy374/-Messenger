@@ -2,11 +2,9 @@ package com.example.messenger.service;
 
 import com.example.messenger.entity.User;
 import com.example.messenger.exceptions.UserNotFoundException;
-import com.example.messenger.payload.response.MessageResponse;
 import com.example.messenger.repositorys.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 

@@ -4,14 +4,11 @@ package com.example.messenger.service;
 import com.example.messenger.entity.Email;
 import com.example.messenger.entity.User;
 import com.example.messenger.exceptions.EmailTokenNotFoundException;
-import com.example.messenger.payload.response.MessageResponse;
 import com.example.messenger.repositorys.EmailRepository;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.mail.*;

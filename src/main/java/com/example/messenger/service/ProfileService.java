@@ -5,13 +5,10 @@ import com.example.messenger.exceptions.EmailTokenNotFoundException;
 import com.example.messenger.payload.request.EmailChangeRequest;
 import com.example.messenger.payload.request.PasswordChangeRequest;
 import com.example.messenger.payload.request.ProfileRequest;
-import com.example.messenger.payload.response.MessageResponse;
 import com.example.messenger.repositorys.UserRepository;
 import com.example.messenger.security.EncodeOperations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -29,7 +29,8 @@ import org.springframework.web.bind.annotation.*;
         name="Контроллера авторизации" +
                 "(Authorization controller)",
         description="В этом контроллере описаны методы авторизации,входа и выхода " +
-                "(This controller describes the authorization, login and logout methods)")
+                "(This controller describes the authorization, login and logout methods)"
+)
 public class AuthController {
 
     private final AuthService authService;

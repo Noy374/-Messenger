@@ -3,24 +3,18 @@ package com.example.messenger.service;
 
 import com.example.messenger.entity.Email;
 import com.example.messenger.entity.User;
-import com.example.messenger.payload.request.EmailChangeRequest;
-import com.example.messenger.payload.request.PasswordChangeRequest;
-import com.example.messenger.payload.request.ProfileRequest;
 import com.example.messenger.payload.request.RegistrationRequest;
-import com.example.messenger.payload.response.MessageResponse;
 import com.example.messenger.repositorys.UserRepository;
 import com.example.messenger.security.EncodeOperations;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 
@@ -58,6 +52,7 @@ public class UserService implements UserDetailsService {
         return  user;
     }
 
+    @Transactional
     public void saveUser(RegistrationRequest registrationRequest) {
         userRepository.save(fromRegReqToUser(registrationRequest));
 
