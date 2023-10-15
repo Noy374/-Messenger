@@ -2,6 +2,7 @@ package com.example.messenger.service;
 
 
 import com.example.messenger.entity.User;
+import com.example.messenger.exceptions.*;
 import com.example.messenger.payload.request.LoginRequest;
 import com.example.messenger.payload.request.RegistrationRequest;
 import com.example.messenger.payload.response.LoginResponse;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,67 +32,69 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
-
     private final UserService userService;
     private final EmailService emailService;
     private final TokenService tokenService;
     private final JwtTokenUtils jwtTokenUtils;
 
-
-
-    public ResponseEntity<Object> registration (RegistrationRequest registrationRequest){
+    public void registration(RegistrationRequest registrationRequest) throws EmailNotValidException {
         userService.saveUser(registrationRequest);
-        if(!emailService.sendConfirmationEmail(registrationRequest.getEmail()))
-            return  ResponseEntity.badRequest().body(new MessageResponse("Invalid email"));
-        return ResponseEntity.ok().body(new MessageResponse("You have successfully registered.Please confirm your email"));
+        if (!emailService.sendConfirmationEmail(registrationRequest.getEmail())) {
+            throw new EmailNotValidException("Invalid email");
+        }
     }
 
-
-    public ResponseEntity<Object> login(LoginRequest loginRequest,  HttpServletResponse response) {
-
-
+    public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) throws InvalidCredentialsException {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),loginRequest.getPassword()));
-        } catch (Exception i) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Incorrect username or password"));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+            UserDetails userDetails = userService.loadUserByUsername(loginRequest.getUsername());
+            String refreshToken = jwtTokenUtils.generateRefreshToken(userDetails);
+            tokenService.saveToken(userDetails, refreshToken);
+            this.createCookie(response, refreshToken);
+            return new LoginResponse(jwtTokenUtils.generateAccessToken(userDetails));
+        } catch (Exception e) {
+            throw new InvalidCredentialsException("Incorrect username or password");
         }
+    }
 
-        UserDetails userDetails= userService.loadUserByUsername(loginRequest.getUsername());
-        String refreshToken= jwtTokenUtils.generateRefreshToken(userDetails);
-        tokenService.saveToken(userDetails,refreshToken);
+    private void createCookie(HttpServletResponse response, String refreshToken) {
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setMaxAge(7200 * 60);//5 days
+        int age = 30 * 24 * 60 * 60;
+        refreshTokenCookie.setMaxAge(age);
+        refreshTokenCookie.setPath("/");
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
         response.addCookie(refreshTokenCookie);
-
-        return ResponseEntity.ok(new LoginResponse(jwtTokenUtils.generateAccessToken(userDetails)));
     }
 
-
-    public ResponseEntity<Object> confirmEmailToken(String token) {
-       return emailService.confirmEmailToken(token);
+    public void confirmEmailToken(String token) throws EmailTokenNotFoundException {
+        emailService.confirmEmailToken(token);
     }
 
-    public ResponseEntity<Object> logOut(HttpServletRequest request, HttpServletResponse response) {
+    public void logOut(String username,HttpServletResponse response) throws UserNotFoundException {
         try {
-            User user=userService.getUser();
+            User user = userService.getUserByUsername(username);
             tokenService.deleteToken(user);
-            JwtTokenUtils.deleteRefreshTokenCookie(request,response);
-            return ResponseEntity.ok(new MessageResponse("Logged out successfully."));
+            Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+            refreshTokenCookie.setMaxAge(0);
+            refreshTokenCookie.setPath("/");
+            refreshTokenCookie.setHttpOnly(true);
+            refreshTokenCookie.setSecure(true);
+            response.addCookie(refreshTokenCookie);
         } catch (UsernameNotFoundException exception) {
-            return ResponseEntity.badRequest().body(new MessageResponse("User not found."));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("An error occurred during log out."));
+            throw new UserNotFoundException("User not found.");
         }
     }
 
-    public ResponseEntity<Object> refreshAccessToken(HttpServletRequest request) {
-        String refreshToken = jwtTokenUtils.fetchTokenFromCookies(request.getCookies());
-        if (refreshToken == null || !tokenService.checkToken(refreshToken))
-           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        return ResponseEntity.ok().body(new RefreshAccessTokenResponse(jwtTokenUtils
-                .generateAccessToken(userService.getUserByUsername(jwtTokenUtils.getUsername(refreshToken)))));
+    public RefreshAccessTokenResponse refreshAccessToken(HttpServletRequest request) throws UnauthorizedRequestException {
 
+        String refreshToken = jwtTokenUtils.fetchTokenFromCookies(request.getCookies());
+        if (refreshToken == null || !tokenService.checkToken(refreshToken)) {
+
+            throw new UnauthorizedRequestException("Token is invalidated");
+        }
+        String username = jwtTokenUtils.getUsername(refreshToken);
+        UserDetails userDetails = userService.getUserByUsername(username);
+        return new RefreshAccessTokenResponse(jwtTokenUtils.generateAccessToken(userDetails));
     }
 }

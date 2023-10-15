@@ -42,6 +42,7 @@ public class SecurityConfig{
                         .requestMatchers("/ws/**","/topic/messages").authenticated()
                         .requestMatchers("/profile/*").authenticated()
                         .requestMatchers("/friend/*").authenticated()
+                        .requestMatchers("/chat-history").authenticated()
                         .anyRequest().permitAll())
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

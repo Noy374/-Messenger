@@ -3,8 +3,10 @@ package com.example.messenger.service;
 
 import com.example.messenger.entity.Email;
 import com.example.messenger.entity.User;
+import com.example.messenger.exceptions.EmailTokenNotFoundException;
 import com.example.messenger.payload.response.MessageResponse;
 import com.example.messenger.repositorys.EmailRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class EmailService {
     private String emailUsername;
     @Value("${email.password}")
     private String emailPassword;
+    @Transactional
     public void saveEmail(Email email) {
             emailRepository.save(email);
     }
@@ -52,7 +55,7 @@ public class EmailService {
                     });
 
             Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress("ksvarian@mail.ru"));
+            message.setFrom(new InternetAddress(emailUsername));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
             message.setSubject("Email address confirmation");
 
@@ -71,6 +74,7 @@ public class EmailService {
         return true;
     }
 
+
     private String generateConfirmationLink(String email){
 
         String confirmationToken = UUID.randomUUID().toString();
@@ -81,16 +85,17 @@ public class EmailService {
         return "http://localhost:8080/confirm?token=" + confirmationToken;
     }
 
-    public ResponseEntity<Object> confirmEmailToken(String token) {
+    @Transactional
+    public void confirmEmailToken(String token) throws EmailTokenNotFoundException {
         try {
             emailRepository.updateStatusByToken(token, true);
         }catch (Exception e){
-            return ResponseEntity.badRequest().body(new MessageResponse("Try confirming your email again"));
+            throw new EmailTokenNotFoundException();
         }
-        return ResponseEntity.ok().body(new MessageResponse("Email successfully confirmed"));
+
     }
 
-
+    @Transactional
     public void updateEmail(User user, String email) {
         emailRepository.updateEmailByUser(user,email);
     }

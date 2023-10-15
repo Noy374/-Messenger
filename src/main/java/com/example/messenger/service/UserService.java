@@ -9,6 +9,7 @@ import com.example.messenger.payload.request.ProfileRequest;
 import com.example.messenger.payload.request.RegistrationRequest;
 import com.example.messenger.payload.response.MessageResponse;
 import com.example.messenger.repositorys.UserRepository;
+import com.example.messenger.security.EncodeOperations;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,17 +21,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
+    private final EncodeOperations encoder;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -54,7 +53,7 @@ public class UserService implements UserDetailsService {
         user.setEmail(email);
         user.setSurname(registrationRequest.getSurname());
         user.setName(registrationRequest.getName());
-        user.setPassword(new BCryptPasswordEncoder().encode(registrationRequest.getPassword()));
+        user.setPassword(encoder.encode(registrationRequest.getPassword()));
         user.setUsername(registrationRequest.getUsername());
         return  user;
     }
@@ -75,7 +74,8 @@ public class UserService implements UserDetailsService {
 
 
     public User getUserByUsername(String username) {
-        return userRepository.getUserByUsername(username).orElse(null);
+        return userRepository.getUserByUsername(username)
+                .orElseThrow(()-> new UsernameNotFoundException("User not found"));
     }
 
     public void saveUser(User user) {
@@ -83,9 +83,10 @@ public class UserService implements UserDetailsService {
     }
 
 
-    public User getUser(){
+    public User getUser() throws UsernameNotFoundException{
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
+
         return userRepository.getUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }

@@ -4,6 +4,7 @@ package com.example.messenger.service;
 import com.example.messenger.entity.Token;
 import com.example.messenger.entity.User;
 import com.example.messenger.repositorys.TokenRepository;
+import com.example.messenger.security.EncodeOperations;
 import com.example.messenger.security.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,9 +21,11 @@ public class TokenService {
     private  final TokenRepository tokenRepository;
     private final JwtTokenUtils jwtTokenUtils;
     private final UserService userService;
+    private final EncodeOperations encoder;
+    @Transactional
     public void saveToken(UserDetails userDetails, String refreshToken) {
         Token token =new Token();
-        token.setRefreshToken(new BCryptPasswordEncoder().encode(refreshToken));
+        token.setRefreshToken(encoder.encode(refreshToken));
         User user= userService.getUserByUsername(userDetails.getUsername());
         token.setUser(user);
         tokenRepository.save( token);
@@ -42,7 +45,7 @@ public class TokenService {
 
     public boolean checkToken(String refreshToken) {
         User user = userService.getUserByUsername(jwtTokenUtils.getUsername(refreshToken));
-        return new BCryptPasswordEncoder().matches(refreshToken, user.getToken().getRefreshToken());
+        return encoder.matches(refreshToken, user.getToken().getRefreshToken());
 
     }
 }

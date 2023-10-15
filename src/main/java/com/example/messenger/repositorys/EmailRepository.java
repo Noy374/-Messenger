@@ -19,6 +19,7 @@ public interface EmailRepository extends JpaRepository<Email,Long> {
     Optional<Email> getEmailByEmailAddress(String email);
 
     @Modifying
+    @Transactional
     @Query("UPDATE Email e SET e.token = :token WHERE e.emailAddress = :email")
     void updateTokenByEmailAddress(@Param("email") String email, @Param("token") String token);
 

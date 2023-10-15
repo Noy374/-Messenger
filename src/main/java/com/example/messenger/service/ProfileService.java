@@ -1,11 +1,13 @@
 package com.example.messenger.service;
 
 import com.example.messenger.entity.User;
+import com.example.messenger.exceptions.EmailTokenNotFoundException;
 import com.example.messenger.payload.request.EmailChangeRequest;
 import com.example.messenger.payload.request.PasswordChangeRequest;
 import com.example.messenger.payload.request.ProfileRequest;
 import com.example.messenger.payload.response.MessageResponse;
 import com.example.messenger.repositorys.UserRepository;
+import com.example.messenger.security.EncodeOperations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +24,7 @@ public class ProfileService {
     private final EmailService emailService;
     private final UserService userService;
 
-
-
+    private final EncodeOperations encoder;
     public void updateProfile(ProfileRequest profileRequest) {
 
         User user = userService.getUser();
@@ -34,17 +35,16 @@ public class ProfileService {
     }
 
     @Transactional
-    public ResponseEntity<Object> changePassword(PasswordChangeRequest passwordChangeRequest) {
+    public boolean changePassword(PasswordChangeRequest passwordChangeRequest) {
         User user = userService.getUser();
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-        if (passwordEncoder.matches(passwordChangeRequest.getPassword(), user.getPassword())) {
+        boolean flag=encoder.matches(passwordChangeRequest.getPassword(), user.getPassword());
+        if (flag) {
             userRepository.updatePasswordByUsername(
                     passwordChangeRequest.getUsername(),
-                    passwordEncoder.encode(passwordChangeRequest.getNewPassword()));
-            return ResponseEntity.ok().body(new MessageResponse("Password changed successfully"));
+                    encoder.encode(passwordChangeRequest.getNewPassword()));
         }
-        return ResponseEntity.badRequest().body(new MessageResponse("Incorrect password"));
+        return flag;
     }
 
 
@@ -55,11 +55,10 @@ public class ProfileService {
         userRepository.save(user);
     }
 
-    public ResponseEntity<Object> changeEmail(EmailChangeRequest emailChangeRequest) {
+    public void changeEmail(EmailChangeRequest emailChangeRequest)throws EmailTokenNotFoundException {
         if(!emailService.sendConfirmationEmail(emailChangeRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Invalid email"));
+           throw new EmailTokenNotFoundException() ;
         }
         emailService.updateEmail(userService.getUser() ,emailChangeRequest.getEmail());
-        return ResponseEntity.ok().body(new MessageResponse("Email changed successfully"));
     }
 }
