@@ -40,7 +40,8 @@ public class SecurityConfig{
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/ws/**","/topic/messages").authenticated()
-                        .requestMatchers("/user/*").authenticated()
+                        .requestMatchers("/profile/*").authenticated()
+                        .requestMatchers("/friend/*").authenticated()
                         .anyRequest().permitAll())
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -5,17 +5,16 @@ import com.example.messenger.entity.Token;
 import com.example.messenger.entity.User;
 import com.example.messenger.repositorys.TokenRepository;
 import com.example.messenger.security.JwtTokenUtils;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TokenService {
 
     private  final TokenRepository tokenRepository;

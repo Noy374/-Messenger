@@ -12,6 +12,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class AuthService {
 
@@ -41,7 +42,7 @@ public class AuthService {
         userService.saveUser(registrationRequest);
         if(!emailService.sendConfirmationEmail(registrationRequest.getEmail()))
             return  ResponseEntity.badRequest().body(new MessageResponse("Invalid email"));
-        return ResponseEntity.ok().body("You have successfully registered.Please confirm your email");
+        return ResponseEntity.ok().body(new MessageResponse("You have successfully registered.Please confirm your email"));
     }
 
 

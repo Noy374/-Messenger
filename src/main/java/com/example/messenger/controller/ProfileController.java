@@ -5,21 +5,23 @@ import com.example.messenger.payload.request.EmailChangeRequest;
 import com.example.messenger.payload.request.PasswordChangeRequest;
 import com.example.messenger.payload.request.ProfileRequest;
 import com.example.messenger.payload.response.MessageResponse;
+import com.example.messenger.service.ProfileService;
 import com.example.messenger.service.UserService;
 import com.example.messenger.validations.ResponseErrorValidation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@AllArgsConstructor
-@RequestMapping("/user")
-public class UserController {
+@RequiredArgsConstructor
+@RequestMapping("/profile")
+public class ProfileController {
 
-    private final UserService userService;
+    private final ProfileService profileService;
     private final ResponseErrorValidation responseErrorValidation;
 
     @PutMapping("/update")
@@ -27,7 +29,7 @@ public class UserController {
 
         ResponseEntity<Object> errors = responseErrorValidation.mapValidationService(bindingResult);
         if (!ObjectUtils.isEmpty(errors)) return errors;
-        userService.updateProfile(profileRequest);
+        profileService.updateProfile(profileRequest);
         return ResponseEntity.ok().body(new MessageResponse("Profile updated successfully"));
     }
 
@@ -35,30 +37,22 @@ public class UserController {
     public ResponseEntity<Object> changePassword(@Valid @RequestBody PasswordChangeRequest passwordChangeRequest, BindingResult bindingResult) {
         ResponseEntity<Object> errors = responseErrorValidation.mapValidationService(bindingResult);
         if (!ObjectUtils.isEmpty(errors)) return errors;
-        return userService.changePassword(passwordChangeRequest);
+        return profileService.changePassword(passwordChangeRequest);
     }
 
     @PutMapping("/change-email")
     public ResponseEntity<Object> changeEmail(@Valid @RequestBody EmailChangeRequest emailChangeRequest, BindingResult bindingResult) {
         ResponseEntity<Object> errors = responseErrorValidation.mapValidationService(bindingResult);
         if (!ObjectUtils.isEmpty(errors)) return errors;
-        return userService.changeEmail(emailChangeRequest);
+        return profileService.changeEmail(emailChangeRequest);
     }
 
     @DeleteMapping("/delete")
     public ResponseEntity<Object> deleteProfile() {
-        userService.changeProfileStatus();
+        profileService.changeProfileStatus();
         return ResponseEntity.ok().body(new MessageResponse("Profile deleted successfully"));
     }
 
 
-    @PostMapping("/add")
-    public ResponseEntity<Object> addFriend(@RequestBody AddFriendRequest addFriendRequest) {
-        return userService.addFriend(addFriendRequest.getFriendUsername());
-    }
 
-    @GetMapping("/friends")
-    public ResponseEntity<Object> getFriends() {
-        return ResponseEntity.ok(userService.getFriends());
-    }
 }
