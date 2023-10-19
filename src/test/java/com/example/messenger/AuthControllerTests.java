@@ -73,7 +73,7 @@ class AuthControllerTests {
     }
 
     @Test
-    public void testLoginSuccess() throws Exception, InvalidCredentialsException {
+    public void testLoginSuccess() throws Exception, InvalidCredentialsException, InvalidUserStatus {
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("testUsername");
         loginRequest.setPassword("testPassword");
@@ -89,7 +89,7 @@ class AuthControllerTests {
     }
 
     @Test
-    public void testLoginFailed() throws Exception, InvalidCredentialsException {
+    public void testLoginFailed() throws Exception, InvalidCredentialsException, InvalidUserStatus {
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("testUsername");
         loginRequest.setPassword("testPassword");
@@ -175,5 +175,44 @@ class AuthControllerTests {
                 .andExpect(jsonPath("$.message").value("Invalid or expired refresh token"));
 
         verify(authService, times(1)).refreshAccessToken(any());
+    }
+
+
+    @Test
+    public void testValidRegistrationError() throws Exception {
+        RegistrationRequest registrationRequest = new RegistrationRequest();
+        registrationRequest.setPassword("   ");
+        registrationRequest.setEmail("invalid_email");
+        registrationRequest.setUsername("");
+        registrationRequest.setName("");
+        registrationRequest.setSurname("");
+
+        mockMvc.perform(post("/auth/reg")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testValidLoginError() throws Exception {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setUsername("");
+        loginRequest.setPassword("   ");
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testValidLogoutError() throws Exception {
+        LogOutRequest logoutRequest = new LogOutRequest();
+        logoutRequest.setUsername("");
+
+        mockMvc.perform(post("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(logoutRequest)))
+                .andExpect(status().isBadRequest());
     }
 }

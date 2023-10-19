@@ -10,8 +10,8 @@ public class Email {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    String emailAddress;
-    String token;
+    private String emailAddress;
+    private String token;
     Boolean status;
     @OneToOne
     private User user;

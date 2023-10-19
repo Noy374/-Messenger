@@ -99,13 +99,47 @@ class ProfileControllerTests {
 
 
     @Test
-    public void testDeleteProfile() throws Exception {
-        doNothing().when(profileService).changeProfileStatus();
+    public void testDeleteProfile() throws Exception, UserNotFoundException {
+        doNothing().when(profileService).changeProfileStatus(eq(false), any());
 
         mockMvc.perform(delete("/profile/delete"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Profile deleted successfully"));
 
-        verify(profileService, times(1)).changeProfileStatus();
+        verify(profileService, times(1)).changeProfileStatus(eq(false), any());
     }
+
+    @Test
+    public void testDeleteProfileUserNotFound() throws Exception, UserNotFoundException {
+        doThrow(UserNotFoundException.class).when(profileService).changeProfileStatus(eq(false), any());
+
+        mockMvc.perform(delete("/profile/delete"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("User  not found"));
+
+        verify(profileService, times(1)).changeProfileStatus(eq(false), any());
+    }
+
+    @Test
+    public void testRestoreProfile() throws Exception, UserNotFoundException {
+        doNothing().when(profileService).changeProfileStatus(eq(true), any());
+
+        mockMvc.perform(delete("/profile/restore"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Profile restored successfully"));
+
+        verify(profileService,times(1)).changeProfileStatus(eq(true), any());
+    }
+
+    @Test
+    public void testRestoreProfileUserNotFound() throws Exception, UserNotFoundException {
+        doThrow(UserNotFoundException.class).when(profileService).changeProfileStatus(eq(true), any());
+
+        mockMvc.perform(delete("/profile/restore"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("User  not found"));
+
+        verify(profileService,times(1)).changeProfileStatus(eq(true), any());
+    }
+
 }

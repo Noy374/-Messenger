@@ -39,7 +39,9 @@ public class AuthService {
         }
     }
 
-    public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) throws InvalidCredentialsException {
+    public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) throws InvalidCredentialsException, InvalidUserStatus {
+        if(!userService.getUserByUsername(loginRequest.getUsername()).getStatus())
+            throw new InvalidUserStatus("Your account has been deactivated, please reactivate it");
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
             UserDetails userDetails = userService.loadUserByUsername(loginRequest.getUsername());

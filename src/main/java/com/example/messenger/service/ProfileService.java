@@ -2,11 +2,13 @@ package com.example.messenger.service;
 
 import com.example.messenger.entity.User;
 import com.example.messenger.exceptions.EmailTokenNotFoundException;
+import com.example.messenger.exceptions.UserNotFoundException;
 import com.example.messenger.payload.request.EmailChangeRequest;
 import com.example.messenger.payload.request.PasswordChangeRequest;
 import com.example.messenger.payload.request.ProfileRequest;
 import com.example.messenger.repositorys.UserRepository;
 import com.example.messenger.security.EncodeOperations;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ public class ProfileService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final UserService userService;
+
+    private final AuthService authService;
 
     private final EncodeOperations encoder;
     public void updateProfile(ProfileRequest profileRequest) {
@@ -46,9 +50,11 @@ public class ProfileService {
 
 
 
-    public void changeProfileStatus() {
+    public void changeProfileStatus(boolean status, HttpServletResponse response) throws UserNotFoundException {
+
         User user = userService.getUser();
-        user.setStatus(false);
+        if (!status)authService.logOut(user.getUsername(),response);
+        user.setStatus(status);
         userRepository.save(user);
     }
 
@@ -57,5 +63,18 @@ public class ProfileService {
            throw new EmailTokenNotFoundException() ;
         }
         emailService.updateEmail(userService.getUser() ,emailChangeRequest.getEmail());
+    }
+
+    @Transactional
+    public void updateFriendsListVisibility(Boolean status) {
+        User user = userService.getUser();
+        user.setIsFriendsListOpen(status);
+        userService.saveUser(user);
+    }
+
+    public void updateMessageReceivingPermission(Boolean status) {
+        User user = userService.getUser();
+        user.setOnlyFriendsCanWrite(status);
+        userService.saveUser(user);
     }
 }

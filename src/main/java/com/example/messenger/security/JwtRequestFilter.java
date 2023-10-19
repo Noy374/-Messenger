@@ -41,7 +41,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
         String jwt=null;
         String username=null;
         try {

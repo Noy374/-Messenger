@@ -1,8 +1,11 @@
 package com.example.messenger;
 
 
+import com.example.messenger.controller.MessageController;
 import com.example.messenger.documens.Message;
+import com.example.messenger.exceptions.InvalidUserStatus;
 import com.example.messenger.payload.request.MessageRequest;
+import com.example.messenger.payload.response.MessageResponse;
 import com.example.messenger.service.MessageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -13,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -50,8 +54,6 @@ class MessageControllerTests {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String SEND_HELLO_MESSAGE_ENDPOINT = "/app/send-message";
-    private static final String SUBSCRIBE_GREETING_ENDPOINT = "/topic/messages";
 
     BlockingQueue<String> blockingQueue;
     WebSocketStompClient stompClient;
@@ -62,37 +64,9 @@ class MessageControllerTests {
         this.blockingQueue = new ArrayBlockingQueue<>(1);
     }
 
+
     @Test
-    public void shouldReceiveGreetingFromServer() throws Exception {
-        String webSocketUrl = "ws://localhost:8080";
-        StompSession session = stompClient
-                .connect(webSocketUrl + "/message-websocket", new StompSessionHandlerAdapter() {
-                })
-                .get(10000, SECONDS);
-
-
-        MessageRequest messageRequest=new MessageRequest();
-        messageRequest.setRecipientUsername("Noy3745345");
-        messageRequest.setSenderUsername("KarSvaa");
-        messageRequest.setText("barev");
-        session.send(SEND_HELLO_MESSAGE_ENDPOINT, messageRequest);
-        session.subscribe(SUBSCRIBE_GREETING_ENDPOINT, new DefaultStompFrameHandler());
-    }
-
-    class DefaultStompFrameHandler implements StompFrameHandler {
-        @Override
-        public Type getPayloadType(StompHeaders headers) {
-            return String.class;
-        }
-
-        @Override
-        public void handleFrame(StompHeaders headers, Object payload) {
-            blockingQueue.offer((String) payload);
-            System.out.println("Received response: " + payload);
-        }
-    }
-    @Test
-    public void testGetChatHistory() throws Exception {
+    public void testGetChatHistory() throws Exception, InvalidUserStatus {
         String senderUsername = "sender";
         String recipientUsername = "recipient";
         List<Message> messages = new ArrayList<>();
@@ -113,7 +87,7 @@ class MessageControllerTests {
     }
 
     @Test
-    public void testGetChatHistoryIncorrectUsernames() throws Exception {
+    public void testGetChatHistoryIncorrectUsernames() throws Exception, InvalidUserStatus {
         String senderUsername = "sender";
         String recipientUsername = "invalid";
 
@@ -134,4 +108,40 @@ class MessageControllerTests {
             stompClient.stop();
         }
     }
+
+    @Test
+    public void testSendMessage() throws Exception {
+        String SEND_HELLO_MESSAGE_ENDPOINT = "/app/send-message";
+
+        String senderUsername = "sender";
+        String recipientUsername = "recipient";
+        String text="Hello!";
+        String webSocketUrl = "ws://localhost:8080";
+        StompSession session = stompClient
+                .connect(webSocketUrl + "/message-websocket", new StompSessionHandlerAdapter() {
+                })
+                .get(10000, SECONDS);
+
+        MessageRequest messageRequest = new MessageRequest();
+        messageRequest.setSenderUsername(senderUsername);
+        messageRequest.setRecipientUsername(recipientUsername);
+        messageRequest.setText(text);
+        session.send(SEND_HELLO_MESSAGE_ENDPOINT, messageRequest);
+
+    }
+
+
+    class DefaultStompFrameHandler implements StompFrameHandler {
+        @Override
+        public Type getPayloadType(StompHeaders headers) {
+            return String.class;
+        }
+
+        @Override
+        public void handleFrame(StompHeaders headers, Object payload) {
+            blockingQueue.offer((String) payload);
+        }
+    }
+
+
 }

@@ -1,6 +1,7 @@
 package com.example.messenger.controller;
 
 import com.example.messenger.exceptions.EmailTokenNotFoundException;
+import com.example.messenger.exceptions.UserNotFoundException;
 import com.example.messenger.payload.request.EmailChangeRequest;
 import com.example.messenger.payload.request.PasswordChangeRequest;
 import com.example.messenger.payload.request.ProfileRequest;
@@ -9,6 +10,7 @@ import com.example.messenger.service.ProfileService;
 import com.example.messenger.validations.ResponseErrorValidation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -85,8 +87,53 @@ public class ProfileController {
                     "(Allows the user to delete their profile)"
     )
     @DeleteMapping("/delete")
-    public ResponseEntity<Object> deleteProfile() {
-        profileService.changeProfileStatus();
+    public ResponseEntity<Object> deleteProfile(HttpServletResponse response) {
+        try {
+            profileService.changeProfileStatus(false,response);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("User  not found"));
+        }
         return ResponseEntity.ok().body(new MessageResponse("Profile deleted successfully"));
+    }
+
+    @Operation(
+            summary = "Восстановление профиля" +
+                    "(Profile restore)",
+            description = "Позволяет пользователю Восстановить свой профиль" +
+                    "(Allows the user to restore their profile)"
+    )
+    @DeleteMapping("/restore")
+    public ResponseEntity<Object> restoreProfile(HttpServletResponse response) {
+        try {
+            profileService.changeProfileStatus(true,response);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("User  not found"));
+        }
+        return ResponseEntity.ok().body(new MessageResponse("Profile restored successfully"));
+    }
+
+
+    @Operation(
+            summary = "Update Friends List Visibility Status",
+            description = "Allows the user to update the visibility status of their friends list"
+    )
+    @PutMapping("/update-friends-list-visibility")
+    public ResponseEntity<Object> updateFriendsListVisibility(@RequestBody Boolean status) {
+        profileService.updateFriendsListVisibility(status);
+        return ResponseEntity.ok().body(new MessageResponse("Friends list visibility updated successfully"));
+    }
+
+    @Operation(
+            summary = "Update Message Receiving Permission",
+            description = "Allows the user to update the permission for receiving messages from non-friends"
+    )
+    @PutMapping("/update-message-receiving-permission")
+    public ResponseEntity<Object> updateMessageReceivingPermission(@RequestBody Boolean status) {
+        profileService.updateMessageReceivingPermission(status);
+        return ResponseEntity.ok().body(new MessageResponse("Message receiving permission updated successfully"));
     }
 }

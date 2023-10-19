@@ -68,6 +68,8 @@ public class AuthController {
             return ResponseEntity.ok(loginResponse);
         } catch (InvalidCredentialsException e) {
             return ResponseEntity.badRequest().body(new MessageResponse("Incorrect username or password"));
+        } catch (InvalidUserStatus e) {
+            return  ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
     @Operation(
@@ -93,7 +95,9 @@ public class AuthController {
                     "(Allows the user to log out of their account)"
     )
     @PostMapping("/logout")
-    ResponseEntity<Object> logOut(@RequestBody LogOutRequest logOutRequest, HttpServletResponse response) {
+    ResponseEntity<Object> logOut(@Valid @RequestBody LogOutRequest logOutRequest, HttpServletResponse response,BindingResult bindingResult) {
+        ResponseEntity<Object> errors = responseErrorValidation.mapValidationService(bindingResult);
+        if (!ObjectUtils.isEmpty(errors)) return errors;
         try {
             authService.logOut(logOutRequest.getUsername(),response);
         } catch (UserNotFoundException e) {

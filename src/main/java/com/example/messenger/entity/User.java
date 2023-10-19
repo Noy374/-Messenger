@@ -45,21 +45,22 @@ public class User implements UserDetails {
     private Token token;
 
     @JsonIgnore
-    @ManyToMany
-    @JoinTable(
-            name = "user_friends",
-            joinColumns = {@JoinColumn(name = "user_id")},
-            inverseJoinColumns = {@JoinColumn(name = "friend_id")}
-    )
-    private Set<User> friends = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<Friendship> friendships = new HashSet<>();
 
-    public void setFriends(Set<User> friends) {
-        this.friends = friends;
-    }
+    @JsonIgnore
+    private Boolean onlyFriendsCanWrite;
+    @JsonIgnore
+    private Boolean isFriendsListOpen;
+
+
+
 
 
     @PrePersist
     protected void onCreate() {
+        this.onlyFriendsCanWrite=false;
+        this.isFriendsListOpen=true;
         this.status=true;
         this.createdDate = LocalDateTime.now();
     }
@@ -72,31 +73,38 @@ public class User implements UserDetails {
 
 
     //Security
+
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
     }
 
+    @JsonIgnore
     @Override
     public String getPassword() {
         return password;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isEnabled() {
         return true;
